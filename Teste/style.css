@@ -1,0 +1,21 @@
+body {
+
+background-color: #ffffe0;
+font-family: Arial, sans-serif; 
+text-align: center; 
+padding: 20px;
+}
+
+.canvas { 
+    max-width: 600px; margin: auto; 
+}
+
+h1 {
+    font-size: 45px;
+}
+
+img {
+    border-radius: 50%;
+    width: 150px;
+
+}
