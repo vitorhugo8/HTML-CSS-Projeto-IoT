@@ -1,4 +1,5 @@
-const broker = "wss://broker.hivemq.com:8000/mqtt"; // Broker MQTT com WebSocket
+// Conexão com o HiveMQ (um broker MQTT público) e definição do tópico 
+const broker = "wss://broker.hivemq.com:8000/mqtt"; 
 const topic = "sensor/frequencia_card";
 
 const client = mqtt.connect(broker);
@@ -6,6 +7,7 @@ const client = mqtt.connect(broker);
 let labels = [];
 let dataPoints = [];
 
+// Criando um gráfico em tempo real (Eixo X = tempo, Eixo Y = BPM)
 const ctx = document.getElementById("heartRateChart").getContext("2d");
 const chart = new Chart(ctx, {
     type: "line",
@@ -28,11 +30,14 @@ const chart = new Chart(ctx, {
     }
 });
 
+// Conexão do cliente com o broker
 client.on("connect", function() {
     console.log("Conectado ao MQTT");
     client.subscribe(topic);
 });
 
+// As mensagens chegam via MQTT e são convertidas em numeros inteiros
+// Adiciona um novo ponto ao gráfico com a hora atual e o valor do BPM
 client.on("message", function(topic, message) {
     const bpm = parseInt(message.toString());
     if (!isNaN(bpm)) {
