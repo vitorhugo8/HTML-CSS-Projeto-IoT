@@ -1,13 +1,6 @@
-// Conexão com o HiveMQ (um broker MQTT público) e definição do tópico 
-const broker = "wss://broker.hivemq.com:8000/mqtt"; 
-const topic = "sensor/frequencia_card";
-
-const client = mqtt.connect(broker);
-
 let labels = [];
 let dataPoints = [];
 
-// Criando um gráfico em tempo real (Eixo X = tempo, Eixo Y = BPM)
 const ctx = document.getElementById("heartRateChart").getContext("2d");
 const chart = new Chart(ctx, {
     type: "line",
@@ -16,39 +9,70 @@ const chart = new Chart(ctx, {
         datasets: [{
             label: "Batimentos por Minuto (BPM)",
             data: dataPoints,
-            borderColor: "red",
-            borderWidth: 2,
+            borderColor: "#007700", // Verde escuro para a linha
+            borderWidth: 3,
             fill: false,
-            tension: 0.1
+            tension: 0.2
         }]
     },
     options: {
+        responsive: true,
+        maintainAspectRatio: false,
         scales: {
-            x: { title: { display: true, text: "Tempo (s)" } },
-            y: { title: { display: true, text: "BPM" }, min: 40, max: 180 }
+            x: {
+                title: { display: true, text: "Tempo", color: "#00ff00" },
+                ticks: { 
+                    color: "#00ff00",
+                    font: { size: 18 }, // Aumentando o tamanho da fonte
+                    callback: function(value, index, values) {
+                        return index % 3 === 0 ? labels[index] : ""; // Exibe a cada 3 segundos
+                    }
+                },
+                grid: {
+                    color: "#00ff00",
+                    lineWidth: 0.5
+                }
+            },
+            y: {
+                title: { display: true, text: "BPM", color: "#00ff00" },
+                ticks: { 
+                    color: "#00ff00",
+                    font: { size: 14 },
+                    stepSize: 20,
+                    min: 40, 
+                    max: 180
+                },
+                grid: {
+                    color: "#00ff00",
+                    lineWidth: 0.5
+                }
+            }
+        },
+        plugins: {
+            legend: { labels: { color: "#00ff00", font: { size: 14 } } }
         }
     }
 });
 
-// Conexão do cliente com o broker
-client.on("connect", function() {
-    console.log("Conectado ao MQTT");
-    client.subscribe(topic);
-});
+// Função para obter a hora real no formato HH:MM:SS
+function getRealTime() {
+    const now = new Date();
+    return now.toLocaleTimeString('pt-BR', { hour12: false });
+}
 
-// As mensagens chegam via MQTT e são convertidas em numeros inteiros
-// Adiciona um novo ponto ao gráfico com a hora atual e o valor do BPM
-client.on("message", function(topic, message) {
-    const bpm = parseInt(message.toString());
-    if (!isNaN(bpm)) {
-        labels.push(new Date().toLocaleTimeString());
-        dataPoints.push(bpm);
+// Simulação de dados em tempo real
+function addData() {
+    const bpm = Math.floor(Math.random() * (120 - 60) + 60); // Simulando BPM entre 60 e 120
+    labels.push(getRealTime()); // Adiciona a hora real
 
-        if (labels.length > 20) { // Mantém apenas os últimos 20 pontos
-            labels.shift();
-            dataPoints.shift();
-        }
+    dataPoints.push(bpm);
 
-        chart.update();
+    if (labels.length > 20) { // Mantém apenas os últimos 20 pontos
+        labels.shift();
+        dataPoints.shift();
     }
-});
+
+    chart.update();
+}
+
+setInterval(addData, 1000); // Adiciona um novo ponto a cada segundo
